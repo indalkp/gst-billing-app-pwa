@@ -1,0 +1,13 @@
+{
+  "name": "GST Billing Dashboard",
+  "short_name": "Billing",
+  "description": "Read-only sales & stock dashboard for the GST Billing App",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f5f6fa",
+  "theme_color": "#00BA8B",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

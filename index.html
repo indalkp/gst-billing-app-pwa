@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Billing Dashboard</title>
+  <meta name="theme-color" content="#00BA8B" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background: #f5f6fa; color: #23232f; }
+    h1 { font-size: 18px; color: #1a1a2e; margin: 0 0 4px; }
+    .subtitle { color: #6b6b7b; font-size: 12.5px; margin-bottom: 18px; }
+    .card { background: #fff; border-radius: 10px; padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .label { font-size: 12px; color: #6b6b7b; text-transform: uppercase; }
+    .value { font-size: 26px; font-weight: 700; color: #1a1a2e; }
+    .invoice-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 13.5px; }
+    .invoice-row:last-child { border-bottom: none; }
+    .note { font-size: 12px; color: #6b6b7b; margin-top: 20px; text-align: center; }
+    .setup { text-align: center; padding: 40px 20px; }
+    .setup input { width: 100%; max-width: 320px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin: 12px 0; }
+    .setup button { padding: 10px 20px; background: #00BA8B; color: #fff; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; }
+    .change-id { display: block; text-align: center; font-size: 11.5px; color: #6b6b7b; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    // Vendor: paste your deployed Code.gs /exec URL here once — every visitor uses this same
+    // shared backend, only their Client ID (below) picks out which sheet they see.
+    const APPS_SCRIPT_URL = 'PASTE_YOUR_DEPLOYED_/exec_URL_HERE';
+    const STORAGE_KEY = 'billing_pwa_client_id';
+
+    function render(html) {
+      document.getElementById('app').innerHTML = html;
+    }
+
+    function renderSetup() {
+      render(`
+        <div class="setup">
+          <h1>🧾 Billing Dashboard</h1>
+          <p class="subtitle">Enter the Client ID shown in your desktop app's Settings → Sync & WhatsApp to see your own data here.</p>
+          <input id="client-id-input" placeholder="Client ID" />
+          <br />
+          <button onclick="saveClientId()">View My Dashboard</button>
+        </div>
+      `);
+    }
+
+    function saveClientId() {
+      const value = document.getElementById('client-id-input').value.trim();
+      if (!value) return;
+      localStorage.setItem(STORAGE_KEY, value);
+      loadDashboard();
+    }
+
+    function changeClientId() {
+      localStorage.removeItem(STORAGE_KEY);
+      renderSetup();
+    }
+
+    async function loadDashboard() {
+      const clientId = localStorage.getItem(STORAGE_KEY);
+      if (!clientId) return renderSetup();
+
+      render('<div class="setup">Loading…</div>');
+      try {
+        const url = `${APPS_SCRIPT_URL}?api=1&client_id=${encodeURIComponent(clientId)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || 'Failed to load');
+
+        const invoiceRows = (data.recentInvoices || [])
+          .map((i) => `<div class="invoice-row"><span>${i.invoice_number}</span><span>₹${Number(i.total).toFixed(2)}</span></div>`)
+          .join('') || '<p class="subtitle">No invoices yet.</p>';
+
+        render(`
+          <h1>🧾 Billing Dashboard</h1>
+          <p class="subtitle">Read-only — all edits happen on the desktop app.</p>
+          <div class="card">
+            <div class="label">Today's Sales</div>
+            <div class="value">₹${Number(data.todaysSales).toFixed(2)}</div>
+          </div>
+          <div class="card">
+            <div class="label">Low Stock Items</div>
+            <div class="value">${data.lowStockCount}</div>
+          </div>
+          <div class="card">
+            <div class="label">Recent Invoices</div>
+            ${invoiceRows}
+          </div>
+          <a class="change-id" href="#" onclick="changeClientId(); return false;">Not your data? Change Client ID</a>
+        `);
+      } catch (err) {
+        render(`<div class="setup"><p>Could not load your dashboard.</p><p class="subtitle">${err.message}</p><a class="change-id" href="#" onclick="loadDashboard(); return false;">Retry</a> · <a class="change-id" href="#" onclick="changeClientId(); return false;">Change Client ID</a></div>`);
+      }
+    }
+
+    loadDashboard();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
+    }
+  </script>
+</body>
+</html>
