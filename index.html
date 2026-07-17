@@ -30,7 +30,7 @@
   <script>
     // Vendor: paste your deployed Code.gs /exec URL here once — every visitor uses this same
     // shared backend, only their Client ID (below) picks out which sheet they see.
-    const APPS_SCRIPT_URL = 'PASTE_YOUR_DEPLOYED_/exec_URL_HERE';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwjhiZQkixMWbvssKuMBtmcldPgOZIEsGeUOwB3X1L2TckVK88E4VFpbwW7nsRl7wzs/exec';
     const STORAGE_KEY = 'billing_pwa_client_id';
 
     function render(html) {
@@ -41,8 +41,8 @@
       render(`
         <div class="setup">
           <h1>🧾 Billing Dashboard</h1>
-          <p class="subtitle">Enter the Client ID shown in your desktop app's Settings → Sync & WhatsApp to see your own data here.</p>
-          <input id="client-id-input" placeholder="Client ID" />
+          <p class="subtitle">Enter the Account ID shown in your desktop app's Settings → Cloud Backup & WhatsApp (Advanced) to see your own data here.</p>
+          <input id="client-id-input" placeholder="Account ID" />
           <br />
           <button onclick="saveClientId()">View My Dashboard</button>
         </div>
@@ -69,7 +69,13 @@
       try {
         const url = `${APPS_SCRIPT_URL}?api=1&client_id=${encodeURIComponent(clientId)}`;
         const res = await fetch(url);
-        const data = await res.json();
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (parseErr) {
+          throw new Error('The service didn\'t respond as expected. Please try again in a moment.');
+        }
         if (!data.ok) throw new Error(data.error || 'Failed to load');
 
         const invoiceRows = (data.recentInvoices || [])
@@ -91,10 +97,10 @@
             <div class="label">Recent Invoices</div>
             ${invoiceRows}
           </div>
-          <a class="change-id" href="#" onclick="changeClientId(); return false;">Not your data? Change Client ID</a>
+          <a class="change-id" href="#" onclick="changeClientId(); return false;">Not your data? Change Account ID</a>
         `);
       } catch (err) {
-        render(`<div class="setup"><p>Could not load your dashboard.</p><p class="subtitle">${err.message}</p><a class="change-id" href="#" onclick="loadDashboard(); return false;">Retry</a> · <a class="change-id" href="#" onclick="changeClientId(); return false;">Change Client ID</a></div>`);
+        render(`<div class="setup"><p>Could not load your dashboard.</p><p class="subtitle">${err.message}</p><a class="change-id" href="#" onclick="loadDashboard(); return false;">Retry</a> · <a class="change-id" href="#" onclick="changeClientId(); return false;">Change Account ID</a></div>`);
       }
     }
 
