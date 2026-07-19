@@ -2,7 +2,10 @@
 // Screen" open instantly even on a flaky connection. The actual data fetch (a cross-origin call
 // to the Apps Script backend) is deliberately left untouched here (no respondWith) so it always
 // hits the network fresh — caching live sales/stock numbers would defeat the point of the dashboard.
-const CACHE_NAME = 'billing-pwa-shell-v1';
+// Bump this string every time index.html/manifest/icons change — the activate handler below
+// deletes any cache whose name doesn't match, which is the only way a visitor's browser ever
+// re-fetches the shell instead of serving whatever it cached on their very first visit.
+const CACHE_NAME = 'billing-pwa-shell-v2';
 const SHELL_FILES = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', (event) => {
