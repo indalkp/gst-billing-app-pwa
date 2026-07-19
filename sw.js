@@ -1,6 +1,9 @@
 // Minimal cache-first service worker for the app shell only — bump CACHE_NAME whenever built
 // assets change meaningfully; the activate handler deletes any stale cache automatically.
-const CACHE_NAME = 'billing-web-shell-v1';
+// Bump this every time the built JS/CSS content changes — index.html references content-hashed
+// asset filenames (e.g. index-XXXXXX.js) that change per build, so an un-bumped cache would keep
+// serving a stale index.html pointing at asset files that no longer exist on the server.
+const CACHE_NAME = 'billing-web-shell-v2';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html', './manifest.json'])));
