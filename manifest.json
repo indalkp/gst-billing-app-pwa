@@ -1,7 +1,7 @@
 {
-  "name": "GST Billing Dashboard",
+  "name": "GST / Non-GST Billing Dashboard",
   "short_name": "Billing",
-  "description": "Read-only sales & stock dashboard for the GST Billing App",
+  "description": "Read-only dashboard for the GST / Non-GST Billing App",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#f5f6fa",
